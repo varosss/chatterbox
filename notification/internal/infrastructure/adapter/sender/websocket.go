@@ -2,6 +2,7 @@ package sender
 
 import (
 	"chatterbox/notification/internal/domain/entity"
+	"chatterbox/notification/internal/domain/valueobject"
 	"context"
 	"encoding/json"
 	"errors"
@@ -19,27 +20,27 @@ func NewWebSocketSender(hub Hub) *WebSocketSender {
 
 func (s *WebSocketSender) Send(ctx context.Context, n entity.Notification) error {
 	notification := Notification{
-		ID:     n.ID,
-		UserID: n.UserID,
-		Type:   n.Type,
+		ID:     n.ID.String(),
+		UserID: n.RecepientID.String(),
+		Type:   n.Type.String(),
 	}
 
 	switch n.Type {
-	case "new_message":
-		data, ok := n.Data.(entity.MessageData)
+	case valueobject.NewMessageNotificationType:
+		payloadData, ok := n.Payload.(entity.MessagePayload)
 		if !ok {
-			return errors.New("invalid data for notification")
+			return errors.New("invalid payload for notification")
 		}
 
-		notification.Data = MessageData{
-			ID:         data.ID,
-			ChatID:     data.ChatID,
-			SenderID:   data.SenderID,
-			Text:       data.Text,
-			OccurredAt: data.OccurredAt,
+		notification.Payload = MessagePayload{
+			ID:         payloadData.ID,
+			ChatID:     payloadData.ChatID,
+			SenderID:   payloadData.SenderID,
+			Text:       payloadData.Text,
+			OccurredAt: payloadData.OccurredAt,
 		}
 	default:
-		return errors.New("unknown notification data")
+		return errors.New("unknown notification payload")
 	}
 
 	payload, err := json.Marshal(notification)
@@ -47,7 +48,7 @@ func (s *WebSocketSender) Send(ctx context.Context, n entity.Notification) error
 		return err
 	}
 
-	if err := s.hub.Send(ctx, n.UserID, payload); err != nil {
+	if err := s.hub.Send(ctx, n.RecepientID.String(), payload); err != nil {
 		return err
 	}
 

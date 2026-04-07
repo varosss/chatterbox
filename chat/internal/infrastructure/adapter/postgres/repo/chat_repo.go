@@ -23,7 +23,7 @@ func (r *ChatPgxRepo) Save(ctx context.Context, chat *entity.Chat) error {
 		ctx,
 		`INSERT INTO chats (id, participant_ids) VALUES ($1, $2)`,
 		chat.ID().String(),
-		chat.ParticipantIDsAsUUIDs(),
+		chat.ParticipantIDsAsStrings(),
 	)
 	return err
 }
@@ -58,4 +58,50 @@ func (r *ChatPgxRepo) FindByID(ctx context.Context, chatID valueobject.ChatID) (
 		parsedChatID,
 		participantIDs,
 	), nil
+}
+
+func (r *ChatPgxRepo) FindManyByParticipantID(
+	ctx context.Context,
+	participantID valueobject.UserID,
+) ([]*entity.Chat, error) {
+	query := "SELECT * FROM chats WHERE $1 = ANY(participant_ids) LIMIT 500"
+	rows, err := r.db.Query(ctx, query, participantID.String())
+	if err != nil {
+		return nil, err
+	}
+
+	var chats []*entity.Chat
+	for rows.Next() {
+		var temp struct {
+			ID             string
+			ParticipantIDs []pgtype.UUID
+		}
+
+		rows.Scan(&temp.ID, &temp.ParticipantIDs)
+
+		participantIDs := make([]valueobject.UserID, len(temp.ParticipantIDs))
+		for i, elem := range temp.ParticipantIDs {
+			parsed, err := valueobject.ParseUserID(elem.String())
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse participant ID: %w", err)
+			}
+			participantIDs[i] = parsed
+		}
+
+		parsedChatID, err := valueobject.ParseChatID(temp.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse chat ID: %w", err)
+		}
+
+		chats = append(chats, entity.ChatFromPrimitives(
+			parsedChatID,
+			participantIDs,
+		))
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return chats, nil
 }

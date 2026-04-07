@@ -52,16 +52,21 @@ func New() (*App, error) {
 	closers = append(closers, eventProducer.Close)
 
 	createChatUC := usecase.NewCreateChatUseCase(eventProducer, chatRepo)
+	listChatsUC := usecase.NewListChatsUseCase(chatRepo)
 	createMessageUC := usecase.NewCreateMessageUseCase(eventProducer, messageRepo, chatRepo)
+	listMessagesUC := usecase.NewListMessagesUseCase(messageRepo)
 
 	ginEngine := gin.Default()
 	ginEngine.Use(gin.Recovery())
+	ginEngine.Use(httphandler.CORSMiddleware())
 
-	chatHandler := httphandler.NewChatHandler(createChatUC)
-	messageHandler := httphandler.NewMessageHandler(createMessageUC)
+	chatHandler := httphandler.NewChatHandler(createChatUC, listChatsUC)
+	messageHandler := httphandler.NewMessageHandler(createMessageUC, listMessagesUC)
 
 	ginEngine.POST("/chats", chatHandler.Create)
+	ginEngine.GET("/chats", chatHandler.List)
 	ginEngine.POST("/messages", messageHandler.Create)
+	ginEngine.GET("/messages", messageHandler.List)
 
 	return &App{
 		cfg: cfg,

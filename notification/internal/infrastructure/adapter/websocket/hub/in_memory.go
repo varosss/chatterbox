@@ -3,8 +3,15 @@ package hub
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
+)
+
+const (
+	pongWait   = 60 * time.Second
+	pingPeriod = (pongWait * 9) / 10
+	writeWait  = 10 * time.Second
 )
 
 type Client struct {
@@ -49,8 +56,16 @@ func (h *InMemoryHub) Register(userID string, conn *websocket.Conn) {
 	h.clients[userID] = append(h.clients[userID], client)
 	h.mu.Unlock()
 
+	conn.SetReadLimit(512)
+	_ = conn.SetReadDeadline(time.Now().Add(pongWait))
+	conn.SetPongHandler(func(string) error {
+		_ = conn.SetReadDeadline(time.Now().Add(pongWait))
+		return nil
+	})
+
 	go h.writePump(client)
 	go h.readPump(client)
+	go h.pingLoop(client)
 }
 
 func (h *InMemoryHub) Close() error {
@@ -103,8 +118,24 @@ func (h *InMemoryHub) writePump(c *Client) {
 	}()
 
 	for msg := range c.Send {
+		c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 		if err := c.Conn.WriteJSON(msg); err != nil {
 			break
+		}
+	}
+}
+
+func (h *InMemoryHub) pingLoop(c *Client) {
+	ticker := time.NewTicker(pingPeriod)
+	defer func() {
+		ticker.Stop()
+		c.Conn.Close()
+	}()
+
+	for range ticker.C {
+		c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
+		if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+			return
 		}
 	}
 }

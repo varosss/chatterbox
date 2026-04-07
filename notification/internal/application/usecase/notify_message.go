@@ -3,6 +3,7 @@ package usecase
 import (
 	"chatterbox/notification/internal/domain/entity"
 	"chatterbox/notification/internal/domain/port"
+	"chatterbox/notification/internal/domain/valueobject"
 	"context"
 	"time"
 )
@@ -30,15 +31,22 @@ func (uc *NotifyMessageUseCase) Execute(
 	ctx context.Context,
 	cmd NotifyMessageCommand,
 ) error {
-	for _, receiverID := range cmd.ReceiverIDs {
+	for _, userID := range cmd.ReceiverIDs {
+		recepientID, err := valueobject.ParseUserID(userID)
+		if err != nil {
+			return err
+		}
+
 		n := entity.Notification{
-			UserID: receiverID,
-			Type:   "new_message",
-			Data: entity.MessageData{
-				ChatID:   cmd.ChatID,
-				ID:       cmd.MessageID,
-				SenderID: cmd.SenderID,
-				Text:     cmd.Text,
+			ID:          valueobject.NewNotificationID(),
+			RecepientID: recepientID,
+			Type:        valueobject.NewMessageNotificationType,
+			Payload: entity.MessagePayload{
+				ChatID:     cmd.ChatID,
+				ID:         cmd.MessageID,
+				SenderID:   cmd.SenderID,
+				Text:       cmd.Text,
+				OccurredAt: cmd.OccurredAt,
 			},
 		}
 

@@ -56,6 +56,7 @@ func New() (*App, error) {
 
 	ginEngine := gin.Default()
 	ginEngine.Use(gin.Recovery())
+	ginEngine.Use(httphandler.CORSMiddleware())
 
 	ginEngine.GET("/ws", wsHandler.Handle)
 

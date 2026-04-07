@@ -24,9 +24,9 @@ func NewWSHandler(h *hub.InMemoryHub) *WSHandler {
 }
 
 func (h *WSHandler) Handle(c *gin.Context) {
-	userID := c.Query("user_id")
-	if userID == "" {
-		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "user_id required"})
+	var req WSConnectRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
 
@@ -35,5 +35,5 @@ func (h *WSHandler) Handle(c *gin.Context) {
 		return
 	}
 
-	h.hub.Register(userID, conn)
+	h.hub.Register(req.UserID, conn)
 }

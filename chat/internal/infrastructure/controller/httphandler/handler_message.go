@@ -10,18 +10,17 @@ import (
 
 type MessageHandler struct {
 	CreateMessageUC *usecase.CreateMessageUseCase
+	ListMessagesUC  *usecase.ListMessagesUseCase
 }
 
 func NewMessageHandler(
 	createMessageUC *usecase.CreateMessageUseCase,
+	listMessagesUC *usecase.ListMessagesUseCase,
 ) *MessageHandler {
 	return &MessageHandler{
 		CreateMessageUC: createMessageUC,
+		ListMessagesUC:  listMessagesUC,
 	}
-}
-
-func (h *MessageHandler) Get() {
-	// TODO
 }
 
 func (h *MessageHandler) Create(c *gin.Context) {
@@ -31,20 +30,20 @@ func (h *MessageHandler) Create(c *gin.Context) {
 		return
 	}
 
-	senderID, err := valueobject.ParseUserID(req.SenderID)
+	parsedSenderID, err := valueobject.ParseUserID(req.SenderID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	chatID, err := valueobject.ParseChatID(req.ChatID)
+	parsedChatID, err := valueobject.ParseChatID(req.ChatID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 	}
 
 	res, err := h.CreateMessageUC.Execute(c.Request.Context(), usecase.CreateMessageCommand{
-		SenderID: senderID,
-		ChatID:   chatID,
+		SenderID: parsedSenderID,
+		ChatID:   parsedChatID,
 		Text:     req.Text,
 	})
 	if err != nil {
@@ -53,4 +52,38 @@ func (h *MessageHandler) Create(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, CreateMessageResponse{ID: res.MessageID.String()})
+}
+
+func (h *MessageHandler) List(c *gin.Context) {
+	var req ListMessagesRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	parsedChatID, err := valueobject.ParseChatID(req.ChatID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+	}
+
+	res, err := h.ListMessagesUC.Execute(c.Request.Context(), usecase.ListMessagesCommand{
+		ChatID: parsedChatID,
+	})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	messagesResp := make([]MessageResponseData, len(res.Messages))
+	for i, message := range res.Messages {
+		messagesResp[i] = MessageResponseData{
+			ID:        message.ID,
+			SenderID:  message.SenderID,
+			ChatID:    message.ChatID,
+			Text:      message.Text,
+			CreatedAt: message.CreatedAt,
+		}
+	}
+
+	c.JSON(http.StatusOK, ListMessagesResponse{Messages: messagesResp})
 }

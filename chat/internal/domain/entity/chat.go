@@ -60,7 +60,7 @@ func (c *Chat) ParticipantIDs() []valueobject.UserID {
 	return c.participantIDs
 }
 
-func (c *Chat) ParticipantIDsAsUUIDs() []string {
+func (c *Chat) ParticipantIDsAsStrings() []string {
 	uuids := make([]string, len(c.participantIDs))
 	for i, id := range c.participantIDs {
 		uuids[i] = id.String()

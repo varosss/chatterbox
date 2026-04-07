@@ -10,13 +10,16 @@ import (
 
 type ChatHandler struct {
 	CreateChatUC *usecase.CreateChatUseCase
+	ListChatsUC  *usecase.ListChatsUseCase
 }
 
 func NewChatHandler(
 	createChatUC *usecase.CreateChatUseCase,
+	listChatsUC *usecase.ListChatsUseCase,
 ) *ChatHandler {
 	return &ChatHandler{
 		CreateChatUC: createChatUC,
+		ListChatsUC:  listChatsUC,
 	}
 }
 
@@ -47,4 +50,36 @@ func (h *ChatHandler) Create(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, CreateChatResponse{ID: res.ChatID.String()})
+}
+
+func (h *ChatHandler) List(c *gin.Context) {
+	var req ListChatsRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	parsedUserID, err := valueobject.ParseUserID(req.UserID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "user_id is invalid"})
+		return
+	}
+
+	res, err := h.ListChatsUC.Execute(c.Request.Context(), usecase.ListChatsCommand{
+		UserID: parsedUserID,
+	})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	chatsResp := make([]ChatResponseData, len(res.Chats))
+	for i, chat := range res.Chats {
+		chatsResp[i] = ChatResponseData{
+			ID:             chat.ID,
+			ParticipantIDs: chat.ParticipantIDs,
+		}
+	}
+
+	c.JSON(http.StatusOK, ListChatsResponse{Chats: chatsResp})
 }

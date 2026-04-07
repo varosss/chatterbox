@@ -28,12 +28,11 @@ func NewMessage(
 	}
 
 	m := &Message{
-		valueobject.NewMessageID(),
-		senderID,
-		chatID,
-		text,
-		time.Now(),
-		[]event.Event{},
+		id:        valueobject.NewMessageID(),
+		senderID:  senderID,
+		chatID:    chatID,
+		text:      text,
+		createdAt: time.Now(),
 	}
 
 	m.recordEvent(event.NewMessageCreatedEvent(
@@ -45,6 +44,22 @@ func NewMessage(
 	))
 
 	return m, nil
+}
+
+func MessageFromPrimitives(
+	id valueobject.MessageID,
+	senderID valueobject.UserID,
+	chatID valueobject.ChatID,
+	text string,
+	createdAt time.Time,
+) *Message {
+	return &Message{
+		id:        id,
+		senderID:  senderID,
+		chatID:    chatID,
+		text:      text,
+		createdAt: time.Now(),
+	}
 }
 
 func (m *Message) recordEvent(event event.Event) {

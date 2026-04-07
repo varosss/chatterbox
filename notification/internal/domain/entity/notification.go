@@ -1,17 +1,18 @@
 package entity
 
-import "time"
-
-type Data interface{}
+import (
+	"chatterbox/notification/internal/domain/valueobject"
+	"time"
+)
 
 type Notification struct {
-	ID     string
-	UserID string
-	Type   string
-	Data   Data
+	ID          valueobject.NotificationID
+	RecepientID valueobject.UserID
+	Type        valueobject.NotificationType
+	Payload     interface{}
 }
 
-type MessageData struct {
+type MessagePayload struct {
 	ID         string
 	ChatID     string
 	SenderID   string
