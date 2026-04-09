@@ -41,6 +41,7 @@ func (h *MessageHandler) Create(c *gin.Context) {
 	parsedChatID, err := valueobject.ParseChatID(req.ChatID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
 	}
 
 	res, err := h.CreateMessageUC.Execute(c.Request.Context(), usecase.CreateMessageCommand{
@@ -66,6 +67,7 @@ func (h *MessageHandler) List(c *gin.Context) {
 	parsedChatID, err := valueobject.ParseChatID(req.ChatID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
 	}
 
 	res, err := h.ListMessagesUC.Execute(c.Request.Context(), usecase.ListMessagesCommand{
