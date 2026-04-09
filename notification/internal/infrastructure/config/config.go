@@ -12,9 +12,19 @@ type RabbitMQ struct {
 	Queue    string
 }
 
+type JWT struct {
+	Issuer string
+}
+
+type Security struct {
+	PublicKeyPath string
+}
+
 type Config struct {
 	HttpServer HttpServer
 	RabbitMQ   RabbitMQ
+	Security   Security
+	JWT        JWT
 }
 
 func Load() (*Config, error) {
@@ -26,6 +36,12 @@ func Load() (*Config, error) {
 			URL:      os.Getenv("RABBITMQ_URL"),
 			Exchange: os.Getenv("RABBITMQ_EXCHANGE"),
 			Queue:    os.Getenv("RABBITMQ_QUEUE"),
+		},
+		Security: Security{
+			PublicKeyPath: os.Getenv("SECURITY_PUBLIC_KEY_PATH"),
+		},
+		JWT: JWT{
+			Issuer: os.Getenv("JWT_ISSUER"),
 		},
 	}
 

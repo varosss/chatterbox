@@ -53,13 +53,8 @@ func (h *ChatHandler) Create(c *gin.Context) {
 }
 
 func (h *ChatHandler) List(c *gin.Context) {
-	var req ListChatsRequest
-	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
-		return
-	}
-
-	parsedUserID, err := valueobject.ParseUserID(req.UserID)
+	userID := c.MustGet("user_id").(string)
+	parsedUserID, err := valueobject.ParseUserID(userID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "user_id is invalid"})
 		return

@@ -21,7 +21,14 @@ func NewChatPgxRepo(db *pgxpool.Pool) *ChatPgxRepo {
 func (r *ChatPgxRepo) Save(ctx context.Context, chat *entity.Chat) error {
 	_, err := r.db.Exec(
 		ctx,
-		`INSERT INTO chats (id, participant_ids) VALUES ($1, $2)`,
+		`INSERT INTO chats (
+			id,
+			participant_ids
+		)
+		VALUES ($1, $2)
+		ON CONFLICT (id) DO UPDATE SET
+			participant_ids = EXCLUDED.participant_ids
+		`,
 		chat.ID().String(),
 		chat.ParticipantIDsAsStrings(),
 	)

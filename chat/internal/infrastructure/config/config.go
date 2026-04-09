@@ -1,6 +1,8 @@
 package config
 
-import "os"
+import (
+	"os"
+)
 
 type Database struct {
 	DSN string
@@ -15,10 +17,20 @@ type RabbitMQ struct {
 	Exchange string
 }
 
+type JWT struct {
+	Issuer string
+}
+
+type Security struct {
+	PublicKeyPath string
+}
+
 type Config struct {
 	Database   Database
 	HttpServer HttpServer
 	RabbitMQ   RabbitMQ
+	Security   Security
+	JWT        JWT
 }
 
 func Load() (*Config, error) {
@@ -32,6 +44,12 @@ func Load() (*Config, error) {
 		RabbitMQ: RabbitMQ{
 			URL:      os.Getenv("RABBITMQ_URL"),
 			Exchange: os.Getenv("RABBITMQ_EXCHANGE"),
+		},
+		Security: Security{
+			PublicKeyPath: os.Getenv("SECURITY_PUBLIC_KEY_PATH"),
+		},
+		JWT: JWT{
+			Issuer: os.Getenv("JWT_ISSUER"),
 		},
 	}
 

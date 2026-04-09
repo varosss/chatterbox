@@ -30,7 +30,9 @@ func (h *MessageHandler) Create(c *gin.Context) {
 		return
 	}
 
-	parsedSenderID, err := valueobject.ParseUserID(req.SenderID)
+	senderID := c.MustGet("user_id").(string)
+
+	parsedSenderID, err := valueobject.ParseUserID(senderID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return

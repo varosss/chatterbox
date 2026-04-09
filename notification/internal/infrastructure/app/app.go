@@ -15,6 +15,9 @@ import (
 	"chatterbox/notification/internal/infrastructure/controller/event/consumer"
 	"chatterbox/notification/internal/infrastructure/controller/event/eventhandler"
 	"chatterbox/notification/internal/infrastructure/controller/httphandler"
+	"chatterbox/pkg/auth"
+	"chatterbox/pkg/httpmiddleware"
+	"chatterbox/pkg/security"
 
 	"github.com/gin-gonic/gin"
 )
@@ -54,9 +57,19 @@ func New() (*App, error) {
 	wsHandler := httphandler.NewWSHandler(inMemoryHub)
 	messageCreatedHandler := eventhandler.NewMessageCreatedHandler(notifyMessageUC)
 
+	publicKey, err := security.LoadPublicKey(cfg.Security.PublicKeyPath)
+	if err != nil {
+		return nil, err
+	}
+
 	ginEngine := gin.Default()
 	ginEngine.Use(gin.Recovery())
-	ginEngine.Use(httphandler.CORSMiddleware())
+	ginEngine.Use(httpmiddleware.CORSMiddleware())
+	ginEngine.Use(
+		httpmiddleware.AuthMiddleware(
+			auth.NewJWTVerifier(publicKey, cfg.JWT.Issuer),
+		),
+	)
 
 	ginEngine.GET("/ws", wsHandler.Handle)
 

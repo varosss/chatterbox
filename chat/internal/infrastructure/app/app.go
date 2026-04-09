@@ -7,6 +7,9 @@ import (
 	"chatterbox/chat/internal/infrastructure/config"
 	"chatterbox/chat/internal/infrastructure/controller/httphandler"
 	"chatterbox/chat/internal/infrastructure/db"
+	"chatterbox/pkg/auth"
+	"chatterbox/pkg/httpmiddleware"
+	"chatterbox/pkg/security"
 	"context"
 	"fmt"
 	"net/http"
@@ -56,9 +59,19 @@ func New() (*App, error) {
 	createMessageUC := usecase.NewCreateMessageUseCase(eventProducer, messageRepo, chatRepo)
 	listMessagesUC := usecase.NewListMessagesUseCase(messageRepo)
 
+	publicKey, err := security.LoadPublicKey(cfg.Security.PublicKeyPath)
+	if err != nil {
+		return nil, err
+	}
+
 	ginEngine := gin.Default()
 	ginEngine.Use(gin.Recovery())
-	ginEngine.Use(httphandler.CORSMiddleware())
+	ginEngine.Use(httpmiddleware.CORSMiddleware())
+	ginEngine.Use(
+		httpmiddleware.AuthMiddleware(
+			auth.NewJWTVerifier(publicKey, cfg.JWT.Issuer),
+		),
+	)
 
 	chatHandler := httphandler.NewChatHandler(createChatUC, listChatsUC)
 	messageHandler := httphandler.NewMessageHandler(createMessageUC, listMessagesUC)

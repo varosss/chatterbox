@@ -22,6 +22,8 @@ WORKDIR /srv
 
 COPY --from=builder /srv/notification/main ./main
 
+COPY --from=builder /srv/certs/public.pem /srv/certs/public.pem
+
 ENV PATH="/usr/local/bin:${PATH}"
 
 EXPOSE 80

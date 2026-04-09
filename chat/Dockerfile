@@ -26,6 +26,8 @@ COPY --from=builder /srv/chat/main ./main
 COPY --from=builder /go/bin/migrate /usr/local/bin/migrate
 COPY --from=builder /srv/chat/migrations /srv/migrations
 
+COPY --from=builder /srv/certs/public.pem /srv/certs/public.pem
+
 ENV PATH="/usr/local/bin:${PATH}"
 
 EXPOSE 80

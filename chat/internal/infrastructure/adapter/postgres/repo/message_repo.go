@@ -21,7 +21,17 @@ func NewMessagePgxRepo(db *pgxpool.Pool) *MessagePgxRepo {
 func (r *MessagePgxRepo) Save(ctx context.Context, m *entity.Message) error {
 	_, err := r.db.Exec(
 		ctx,
-		`INSERT INTO messages (id, chat_id, sender_id, text, created_at) VALUES ($1, $2, $3, $4, $5)`,
+		`INSERT INTO messages (
+			id,
+			chat_id,
+			sender_id,
+			text,
+			created_at
+		)
+		VALUES ($1, $2, $3, $4, $5)
+		ON CONFLICT (id) DO UPDATE SET
+			text = EXCLUDED.text
+		`,
 		m.ID().String(),
 		m.ChatID().String(),
 		m.SenderID().String(),

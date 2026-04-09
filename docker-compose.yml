@@ -27,6 +27,7 @@ services:
     ports:
       - "8080:80"
       - "8081:81"
+      - "8082:82"
     volumes:
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     networks:
@@ -64,6 +65,8 @@ services:
         condition: service_healthy
       chatterbox-postgres:
         condition: service_healthy
+    volumes:
+      - ./chat/migrations:/srv/migrations
     env_file:
       - ./chat/.env
     networks:
@@ -77,6 +80,19 @@ services:
         condition: service_healthy
     env_file:
       - ./notification/.env
+    networks:
+      - chatterbox-network
+
+  chatterbox-user:
+    image: vaross/private-projects:chatterbox-user-latest
+    container_name: chatterbox-user
+    depends_on:
+      chatterbox-postgres:
+        condition: service_healthy
+    volumes:
+      - ./user/migrations:/srv/migrations
+    env_file:
+      - ./user/.env
     networks:
       - chatterbox-network
 

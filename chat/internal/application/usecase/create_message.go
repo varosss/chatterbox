@@ -5,6 +5,7 @@ import (
 	"chatterbox/chat/internal/domain/port"
 	"chatterbox/chat/internal/domain/valueobject"
 	"context"
+	"errors"
 )
 
 type CreateMessageCommand struct {
@@ -44,11 +45,18 @@ func (uc *CreateMessageUseCase) Execute(
 		return nil, err
 	}
 
+	senderIsInChat := false
 	var receiverIDs []valueobject.UserID
 	for _, participantID := range chat.ParticipantIDs() {
-		if participantID != cmd.SenderID {
+		if participantID == cmd.SenderID {
+			senderIsInChat = true
+		} else {
 			receiverIDs = append(receiverIDs, participantID)
 		}
+	}
+
+	if !senderIsInChat {
+		return nil, errors.New("sender is not in this chat")
 	}
 
 	message, err := entity.NewMessage(

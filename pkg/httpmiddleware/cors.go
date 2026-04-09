@@ -1,4 +1,4 @@
-package httphandler
+package httpmiddleware
 
 import "github.com/gin-gonic/gin"
 

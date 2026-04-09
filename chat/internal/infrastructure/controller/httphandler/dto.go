@@ -11,9 +11,8 @@ type CreateChatResponse struct {
 }
 
 type CreateMessageRequest struct {
-	SenderID string `json:"sender_id" example:"60601fee-2bf1-4721-ae6f-7636e79a0cba"`
-	ChatID   string `json:"chat_id" example:"60601fee-2bf1-4721-ae6f-7636e79a0cba"`
-	Text     string `json:"text" example:"Hello, World!"`
+	ChatID string `json:"chat_id" example:"60601fee-2bf1-4721-ae6f-7636e79a0cba"`
+	Text   string `json:"text" example:"Hello, World!"`
 }
 
 type CreateMessageResponse struct {
@@ -33,11 +32,10 @@ type MessageResponseData struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type ListChatsRequest struct {
-	UserID string `form:"user_id" binding:"required,uuid"`
-	// Limit  int    `form:"limit" binding:"omitempty,min=1,max=100"`
-	// Offset int    `form:"offset" binding:"omitempty,min=0"`
-}
+// type ListChatsRequest struct {
+// 	Limit  int `form:"limit" binding:"omitempty,min=1,max=100"`
+// 	Offset int `form:"offset" binding:"omitempty,min=0"`
+// }
 
 type ListChatsResponse struct {
 	Chats []ChatResponseData `json:"chats"`

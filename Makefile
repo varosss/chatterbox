@@ -1,7 +1,11 @@
 REGISTRY := vaross/private-projects
 BUILD_DATE := $(shell date +%Y_%m_%d_%H_%M_%S)
 
-SERVICES := chat notification
+SERVICES := chat notification user
+
+CERTS_DIR := ./certs
+PRIVATE_KEY := $(CERTS_DIR)/private.pem
+PUBLIC_KEY := $(CERTS_DIR)/public.pem
 
 # ------------------------------------------------
 # Help command
@@ -67,7 +71,7 @@ docker.migrate.%.up:
 
 docker.migrate.%.down:
 	@echo "⬇️ Running migrations DOWN for service: $*"
-	MSYS_NO_PATHCONV=1 docker compose exec chatterbox-$* sh -c 'migrate -path "$$MIGRATIONS_PATH" -database "$$POSTGRES_URL" down'
+	MSYS_NO_PATHCONV=1 docker compose exec chatterbox-$* sh -c 'migrate -path "$$MIGRATIONS_PATH" -database "$$POSTGRES_URL" down 1'
 
 migrate.%.create:
 	@echo "🛠 Creating migration for $* with name: $(name)"
@@ -82,3 +86,22 @@ proto.%:
 	--go_out=paths=source_relative:$*/proto \
 	--go-grpc_out=paths=source_relative:$*/proto \
 	$*/proto/$*.proto
+
+
+# ------------------------------------------------
+# PEM certificates
+# ------------------------------------------------
+generate-certs:
+	@mkdir -p $(CERTS_DIR)
+	@openssl genpkey -algorithm RSA -out $(PRIVATE_KEY) -pkeyopt rsa_keygen_bits:4096
+	@openssl rsa -pubout -in $(PRIVATE_KEY) -out $(PUBLIC_KEY)
+	@echo "JWT key pair generated in root certs/:"
+	@echo "  Private: $(PRIVATE_KEY)"
+	@echo "  Public:  $(PUBLIC_KEY)"
+
+clean-certs:
+	@rm -f $(PRIVATE_KEY) $(PUBLIC_KEY)
+	@echo "JWT keys removed"
+
+show-public-key:
+	@cat $(PUBLIC_KEY)
