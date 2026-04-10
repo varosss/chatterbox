@@ -66,7 +66,7 @@ func New() (*App, error) {
 
 	ginEngine := gin.Default()
 	ginEngine.Use(gin.Recovery())
-	ginEngine.Use(httpmiddleware.CORSMiddleware())
+	ginEngine.Use(httpmiddleware.CORSMiddleware(cfg.HttpServer.Origins))
 	ginEngine.Use(
 		httpmiddleware.AuthMiddleware(
 			auth.NewJWTVerifier(publicKey, cfg.JWT.Issuer),

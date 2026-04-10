@@ -57,5 +57,5 @@ func (h *UserHandler) List(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusBadRequest, ListUsersResponse{Users: usersRes})
+	c.JSON(http.StatusOK, ListUsersResponse{Users: usersRes})
 }

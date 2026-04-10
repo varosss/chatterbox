@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strings"
 )
 
 type Database struct {
@@ -9,7 +10,10 @@ type Database struct {
 }
 
 type HttpServer struct {
-	Port string
+	Origins    string
+	HostURL    string
+	HostDomain string
+	Port       string
 }
 
 type RabbitMQ struct {
@@ -34,12 +38,19 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
+	hostURL := os.Getenv("HTTP_SERVER_HOST_URL")
+	domain := strings.TrimPrefix(hostURL, "http://")
+	domain = strings.TrimPrefix(domain, "https://")
+
 	cfg := &Config{
 		Database: Database{
 			DSN: os.Getenv("POSTGRES_URL"),
 		},
 		HttpServer: HttpServer{
-			Port: getEnv("HTTP_SERVER_PORT", "80"),
+			Origins:    getEnv("HTTP_SERVER_ALLOW_ORIGIN", "*"),
+			HostDomain: domain,
+			HostURL:    hostURL,
+			Port:       getEnv("HTTP_SERVER_PORT", "80"),
 		},
 		RabbitMQ: RabbitMQ{
 			URL:      os.Getenv("RABBITMQ_URL"),

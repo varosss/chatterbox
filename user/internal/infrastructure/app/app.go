@@ -97,6 +97,7 @@ func New() (*App, error) {
 	listUsersUC := usecase.NewListUsersUseCase(userRepo)
 
 	authHandler := httphandler.NewAuthHandler(
+		cfg,
 		registerUC,
 		loginUC,
 		logoutUC,
@@ -108,7 +109,7 @@ func New() (*App, error) {
 
 	ginEngine := gin.Default()
 	ginEngine.Use(gin.Recovery())
-	ginEngine.Use(httpmiddleware.CORSMiddleware())
+	ginEngine.Use(httpmiddleware.CORSMiddleware(cfg.HttpServer.Origins))
 
 	ginEngine.POST("/register", authHandler.Register)
 	ginEngine.POST("/login", authHandler.Login)

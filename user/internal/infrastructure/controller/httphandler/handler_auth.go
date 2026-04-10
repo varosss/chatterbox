@@ -3,12 +3,15 @@ package httphandler
 import (
 	"chatterbox/user/internal/application/usecase"
 	"chatterbox/user/internal/domain/valueobject"
+	"chatterbox/user/internal/infrastructure/config"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type AuthHandler struct {
+	cfg *config.Config
+
 	registerUC     *usecase.RegisterUseCase
 	loginUC        *usecase.LoginUseCase
 	logoutUC       *usecase.LogoutUseCase
@@ -16,12 +19,14 @@ type AuthHandler struct {
 }
 
 func NewAuthHandler(
+	cfg *config.Config,
 	registerUC *usecase.RegisterUseCase,
 	loginUC *usecase.LoginUseCase,
 	logoutUC *usecase.LogoutUseCase,
 	refreshTokenUC *usecase.RefreshTokenUseCase,
 ) *AuthHandler {
 	return &AuthHandler{
+		cfg:            cfg,
 		registerUC:     registerUC,
 		loginUC:        loginUC,
 		logoutUC:       logoutUC,
@@ -85,6 +90,25 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
+	c.SetCookie(
+		"access_token",
+		res.AccessToken,
+		int(h.cfg.JWT.AccessTTL.Seconds()),
+		"/",
+		h.cfg.HttpServer.HostDomain,
+		false,
+		true,
+	)
+	c.SetCookie(
+		"refresh_token",
+		res.RefreshToken,
+		int(h.cfg.JWT.RefreshTTL.Seconds()),
+		"/",
+		h.cfg.HttpServer.HostDomain,
+		false,
+		true,
+	)
+
 	c.JSON(
 		http.StatusOK,
 		AuthResponse{
@@ -127,6 +151,25 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
+
+	c.SetCookie(
+		"access_token",
+		res.AccessToken,
+		int(h.cfg.JWT.AccessTTL.Seconds()),
+		"/",
+		h.cfg.HttpServer.HostDomain,
+		false,
+		true,
+	)
+	c.SetCookie(
+		"refresh_token",
+		res.RefreshToken,
+		int(h.cfg.JWT.RefreshTTL.Seconds()),
+		"/",
+		h.cfg.HttpServer.HostDomain,
+		false,
+		true,
+	)
 
 	c.JSON(
 		http.StatusOK,
