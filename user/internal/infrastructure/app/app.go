@@ -117,8 +117,8 @@ func New() (*App, error) {
 
 	ginEngine.GET(
 		"/users",
-		userHandler.List,
 		httpmiddleware.AuthMiddleware(auth.NewTokenVerifierWrapper(jwtTokenVerifier)),
+		userHandler.List,
 	)
 
 	return &App{
