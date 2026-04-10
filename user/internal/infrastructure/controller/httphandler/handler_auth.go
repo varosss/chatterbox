@@ -56,7 +56,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, RegisterResponse{UserID: res.UserID.String()})
+	c.JSON(http.StatusOK, RegisterResponse{ID: res.UserID.String()})
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {

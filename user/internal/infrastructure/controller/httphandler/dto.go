@@ -8,7 +8,7 @@ type RegisterRequest struct {
 }
 
 type RegisterResponse struct {
-	UserID string `json:"user_id" example:"60601fee-2bf1-4721-ae6f-7636e79a0cba"`
+	ID string `json:"id" example:"60601fee-2bf1-4721-ae6f-7636e79a0cba"`
 }
 
 type LoginRequest struct {

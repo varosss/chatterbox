@@ -115,7 +115,11 @@ func New() (*App, error) {
 	ginEngine.POST("/logout", authHandler.Logout)
 	ginEngine.POST("/refresh_token", authHandler.RefreshToken)
 
-	ginEngine.GET("/users", userHandler.List)
+	ginEngine.GET(
+		"/users",
+		userHandler.List,
+		httpmiddleware.AuthMiddleware(auth.NewTokenVerifierWrapper(jwtTokenVerifier)),
+	)
 
 	return &App{
 		cfg: cfg,
