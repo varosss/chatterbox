@@ -9,13 +9,16 @@ import (
 )
 
 type UserHandler struct {
+	getUserUC   *usecase.GetUserUseCase
 	listUsersUC *usecase.ListUsersUseCase
 }
 
 func NewUserHandler(
+	getUserUC *usecase.GetUserUseCase,
 	listUsersUC *usecase.ListUsersUseCase,
 ) *UserHandler {
 	return &UserHandler{
+		getUserUC:   getUserUC,
 		listUsersUC: listUsersUC,
 	}
 }
@@ -40,6 +43,8 @@ func (h *UserHandler) List(c *gin.Context) {
 
 	res, err := h.listUsersUC.Execute(c.Request.Context(), usecase.ListUsersCommand{
 		UserIDs: userIDs,
+		Limit:   req.Limit,
+		Offset:  req.Offset,
 	})
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
@@ -58,4 +63,28 @@ func (h *UserHandler) List(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, ListUsersResponse{Users: usersRes})
+}
+
+func (h *UserHandler) Me(c *gin.Context) {
+	parsedUserID, err := valueobject.ParseUserID(c.MustGet("user_id").(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	res, err := h.getUserUC.Execute(c.Request.Context(), usecase.GetUserCommand{
+		UserID: parsedUserID,
+	})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, UserResponseData{
+		ID:          res.User.ID,
+		Email:       res.User.Email,
+		Username:    res.User.Username,
+		DisplayName: res.User.DisplayName,
+		Status:      res.User.Status,
+	})
 }

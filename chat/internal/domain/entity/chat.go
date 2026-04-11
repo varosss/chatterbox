@@ -9,12 +9,14 @@ import (
 type Chat struct {
 	id             valueobject.ChatID
 	participantIDs []valueobject.UserID
+	displayName    string
 
 	events []event.Event
 }
 
 func NewChat(
 	participantsIDs []valueobject.UserID,
+	displayName string,
 ) (*Chat, error) {
 	if len(participantsIDs) == 0 {
 		return nil, errors.New("cannot create chat without participants")
@@ -23,6 +25,7 @@ func NewChat(
 	chat := &Chat{
 		id:             valueobject.NewChatID(),
 		participantIDs: participantsIDs,
+		displayName:    displayName,
 	}
 
 	chat.recordEvent(event.NewChatCreatedEvent(chat.ID(), chat.ParticipantIDs()))
@@ -33,10 +36,12 @@ func NewChat(
 func ChatFromPrimitives(
 	id valueobject.ChatID,
 	participantIDs []valueobject.UserID,
+	displayName string,
 ) *Chat {
 	return &Chat{
 		id:             id,
 		participantIDs: participantIDs,
+		displayName:    displayName,
 	}
 }
 
@@ -58,6 +63,10 @@ func (c *Chat) ID() valueobject.ChatID {
 
 func (c *Chat) ParticipantIDs() []valueobject.UserID {
 	return c.participantIDs
+}
+
+func (c *Chat) DisplayName() string {
+	return c.displayName
 }
 
 func (c *Chat) ParticipantIDsAsStrings() []string {

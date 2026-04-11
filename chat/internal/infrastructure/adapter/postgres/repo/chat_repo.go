@@ -23,14 +23,17 @@ func (r *ChatPgxRepo) Save(ctx context.Context, chat *entity.Chat) error {
 		ctx,
 		`INSERT INTO chats (
 			id,
-			participant_ids
+			participant_ids,
+			display_name
 		)
-		VALUES ($1, $2)
+		VALUES ($1, $2, $3)
 		ON CONFLICT (id) DO UPDATE SET
-			participant_ids = EXCLUDED.participant_ids
+			participant_ids = EXCLUDED.participant_ids,
+			display_name = EXCLUDED.display_name
 		`,
 		chat.ID().String(),
 		chat.ParticipantIDsAsStrings(),
+		chat.DisplayName(),
 	)
 	return err
 }
@@ -40,9 +43,10 @@ func (r *ChatPgxRepo) FindByID(ctx context.Context, chatID valueobject.ChatID) (
 	var temp struct {
 		ID             string
 		ParticipantIDs []pgtype.UUID
+		DisplayName    string
 	}
 
-	err := r.db.QueryRow(ctx, query, chatID.String()).Scan(&temp.ID, &temp.ParticipantIDs)
+	err := r.db.QueryRow(ctx, query, chatID.String()).Scan(&temp.ID, &temp.ParticipantIDs, &temp.DisplayName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find chat by chat ID: %w", err)
 	}
@@ -64,10 +68,11 @@ func (r *ChatPgxRepo) FindByID(ctx context.Context, chatID valueobject.ChatID) (
 	return entity.ChatFromPrimitives(
 		parsedChatID,
 		participantIDs,
+		temp.DisplayName,
 	), nil
 }
 
-func (r *ChatPgxRepo) FindManyByParticipantID(
+func (r *ChatPgxRepo) List(
 	ctx context.Context,
 	participantID valueobject.UserID,
 ) ([]*entity.Chat, error) {
@@ -82,9 +87,10 @@ func (r *ChatPgxRepo) FindManyByParticipantID(
 		var temp struct {
 			ID             string
 			ParticipantIDs []pgtype.UUID
+			DisplayName    string
 		}
 
-		rows.Scan(&temp.ID, &temp.ParticipantIDs)
+		rows.Scan(&temp.ID, &temp.ParticipantIDs, &temp.DisplayName)
 
 		participantIDs := make([]valueobject.UserID, len(temp.ParticipantIDs))
 		for i, elem := range temp.ParticipantIDs {
@@ -103,6 +109,7 @@ func (r *ChatPgxRepo) FindManyByParticipantID(
 		chats = append(chats, entity.ChatFromPrimitives(
 			parsedChatID,
 			participantIDs,
+			temp.DisplayName,
 		))
 	}
 

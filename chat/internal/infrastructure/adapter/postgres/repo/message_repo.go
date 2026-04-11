@@ -41,7 +41,7 @@ func (r *MessagePgxRepo) Save(ctx context.Context, m *entity.Message) error {
 	return err
 }
 
-func (r *MessagePgxRepo) FindManyByChatID(
+func (r *MessagePgxRepo) List(
 	ctx context.Context,
 	chatID valueobject.ChatID,
 ) ([]*entity.Message, error) {

@@ -3,6 +3,7 @@ package httphandler
 import "time"
 
 type CreateChatRequest struct {
+	DisplayName  string   `json:"display_name" example:"Group Chat"`
 	Participants []string `json:"participants"`
 }
 
@@ -22,6 +23,7 @@ type CreateMessageResponse struct {
 type ChatResponseData struct {
 	ID             string   `json:"id" example:"60601fee-2bf1-4721-ae6f-7636e79a0cba"`
 	ParticipantIDs []string `json:"participant_ids"`
+	DisplayName    string   `json:"display_name" example:"Group Chat 1"`
 }
 
 type MessageResponseData struct {

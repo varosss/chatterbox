@@ -8,5 +8,5 @@ import (
 
 type MessageRepo interface {
 	Save(ctx context.Context, msg *entity.Message) error
-	FindManyByChatID(ctx context.Context, chatID valueobject.ChatID) ([]*entity.Message, error)
+	List(ctx context.Context, chatID valueobject.ChatID) ([]*entity.Message, error)
 }

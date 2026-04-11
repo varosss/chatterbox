@@ -57,7 +57,7 @@ func New() (*App, error) {
 	createChatUC := usecase.NewCreateChatUseCase(eventProducer, chatRepo)
 	listChatsUC := usecase.NewListChatsUseCase(chatRepo)
 	createMessageUC := usecase.NewCreateMessageUseCase(eventProducer, messageRepo, chatRepo)
-	listMessagesUC := usecase.NewListMessagesUseCase(messageRepo)
+	listMessagesUC := usecase.NewListMessagesUseCase(chatRepo, messageRepo)
 
 	publicKey, err := security.LoadPublicKey(cfg.Security.PublicKeyPath)
 	if err != nil {

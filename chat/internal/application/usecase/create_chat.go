@@ -9,6 +9,7 @@ import (
 
 type CreateChatCommand struct {
 	ParticipantIDs []valueobject.UserID
+	DisplayName    string
 }
 
 type CreateChatResult struct {
@@ -36,6 +37,7 @@ func (uc *CreateChatUseCase) Execute(
 ) (*CreateChatResult, error) {
 	chat, err := entity.NewChat(
 		cmd.ParticipantIDs,
+		cmd.DisplayName,
 	)
 	if err != nil {
 		return nil, err

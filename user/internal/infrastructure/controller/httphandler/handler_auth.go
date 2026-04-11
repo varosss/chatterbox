@@ -109,13 +109,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		true,
 	)
 
-	c.JSON(
-		http.StatusOK,
-		AuthResponse{
-			AccessToken:  res.AccessToken,
-			RefreshToken: res.RefreshToken,
-		},
-	)
+	c.Status(http.StatusNoContent)
 }
 
 func (h *AuthHandler) Logout(c *gin.Context) {
@@ -171,11 +165,5 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		true,
 	)
 
-	c.JSON(
-		http.StatusOK,
-		AuthResponse{
-			AccessToken:  res.AccessToken,
-			RefreshToken: res.RefreshToken,
-		},
-	)
+	c.Status(http.StatusNoContent)
 }

@@ -94,6 +94,7 @@ func New() (*App, error) {
 		systemClock,
 		cfg.JWT.RefreshTTL,
 	)
+	getUserUC := usecase.NewGetUserUseCase(userRepo)
 	listUsersUC := usecase.NewListUsersUseCase(userRepo)
 
 	authHandler := httphandler.NewAuthHandler(
@@ -104,6 +105,7 @@ func New() (*App, error) {
 		refreshTokenUC,
 	)
 	userHandler := httphandler.NewUserHandler(
+		getUserUC,
 		listUsersUC,
 	)
 
@@ -116,10 +118,19 @@ func New() (*App, error) {
 	ginEngine.POST("/logout", authHandler.Logout)
 	ginEngine.POST("/refresh_token", authHandler.RefreshToken)
 
+	authMiddleware := httpmiddleware.AuthMiddleware(
+		auth.NewTokenVerifierWrapper(jwtTokenVerifier),
+	)
+
 	ginEngine.GET(
 		"/users",
-		httpmiddleware.AuthMiddleware(auth.NewTokenVerifierWrapper(jwtTokenVerifier)),
+		authMiddleware,
 		userHandler.List,
+	)
+	ginEngine.GET(
+		"/users/me",
+		authMiddleware,
+		userHandler.Me,
 	)
 
 	return &App{

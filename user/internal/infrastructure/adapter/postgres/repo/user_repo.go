@@ -94,22 +94,33 @@ func (r *UserPgxRepo) ExistsByEmail(
 	return err == nil && exists
 }
 
-func (r *UserPgxRepo) FindManyByUserIDs(
+func (r *UserPgxRepo) List(
 	ctx context.Context,
 	userIDs []valueobject.UserID,
+	limit int,
+	offset int,
 ) ([]*entity.User, error) {
 	ids := make([]string, len(userIDs))
 	for i, id := range userIDs {
 		ids[i] = id.String()
 	}
 
+	var args []any
+
 	query := `
 		SELECT id, email, username, display_name, password_hash, status
 		FROM users
-		WHERE id = ANY($1)
 	`
 
-	rows, err := r.db.Query(ctx, query, ids)
+	if len(ids) > 0 {
+		query += " WHERE id = ANY($1) LIMIT ($2) OFFSET ($3)"
+		args = append(args, ids, limit, offset)
+	} else {
+		query += " LIMIT ($1) OFFSET ($2)"
+		args = append(args, limit, offset)
+	}
+
+	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

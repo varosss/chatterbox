@@ -16,11 +16,6 @@ type LoginRequest struct {
 	Password string `json:"password" example:"s$*tv7bv1)"`
 }
 
-type AuthResponse struct {
-	AccessToken  string `json:"access_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"`
-	RefreshToken string `json:"refresh_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"`
-}
-
 type UserResponseData struct {
 	ID          string `json:"id" example:"60601fee-2bf1-4721-ae6f-7636e79a0cba"`
 	Email       string `json:"email" example:"john_doe@email.com"`
@@ -31,6 +26,8 @@ type UserResponseData struct {
 
 type ListUsersRequest struct {
 	UserIDs []string `form:"user_ids"`
+	Limit   int      `form:"limit" example:"500"`
+	Offset  int      `form:"offset" example:"500"`
 }
 
 type ListUsersResponse struct {

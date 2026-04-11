@@ -9,5 +9,5 @@ import (
 type ChatRepo interface {
 	Save(ctx context.Context, chat *entity.Chat) error
 	FindByID(ctx context.Context, chatID valueobject.ChatID) (*entity.Chat, error)
-	FindManyByParticipantID(ctx context.Context, participantID valueobject.UserID) ([]*entity.Chat, error)
+	List(ctx context.Context, participantID valueobject.UserID) ([]*entity.Chat, error)
 }

@@ -42,6 +42,7 @@ func (h *ChatHandler) Create(c *gin.Context) {
 	}
 
 	res, err := h.CreateChatUC.Execute(c.Request.Context(), usecase.CreateChatCommand{
+		DisplayName:    req.DisplayName,
 		ParticipantIDs: participantsIDs,
 	})
 	if err != nil {
@@ -73,6 +74,7 @@ func (h *ChatHandler) List(c *gin.Context) {
 		chatsResp[i] = ChatResponseData{
 			ID:             chat.ID,
 			ParticipantIDs: chat.ParticipantIDs,
+			DisplayName:    chat.DisplayName,
 		}
 	}
 

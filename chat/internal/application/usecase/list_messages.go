@@ -5,9 +5,12 @@ import (
 	"chatterbox/chat/internal/domain/port"
 	"chatterbox/chat/internal/domain/valueobject"
 	"context"
+	"errors"
+	"slices"
 )
 
 type ListMessagesCommand struct {
+	UserID valueobject.UserID
 	ChatID valueobject.ChatID
 }
 
@@ -16,11 +19,16 @@ type ListMessagesResult struct {
 }
 
 type ListMessagesUseCase struct {
+	chats    port.ChatRepo
 	messages port.MessageRepo
 }
 
-func NewListMessagesUseCase(messages port.MessageRepo) *ListMessagesUseCase {
+func NewListMessagesUseCase(
+	chats port.ChatRepo,
+	messages port.MessageRepo,
+) *ListMessagesUseCase {
 	return &ListMessagesUseCase{
+		chats:    chats,
 		messages: messages,
 	}
 }
@@ -29,7 +37,16 @@ func (uc *ListMessagesUseCase) Execute(
 	ctx context.Context,
 	cmd ListMessagesCommand,
 ) (*ListMessagesResult, error) {
-	messages, err := uc.messages.FindManyByChatID(ctx, cmd.ChatID)
+	chat, err := uc.chats.FindByID(ctx, cmd.ChatID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !slices.Contains(chat.ParticipantIDs(), cmd.UserID) {
+		return nil, errors.New("user is not a chat participant")
+	}
+
+	messages, err := uc.messages.List(ctx, chat.ID())
 	if err != nil {
 		return nil, err
 	}

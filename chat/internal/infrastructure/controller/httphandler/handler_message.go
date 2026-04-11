@@ -64,6 +64,12 @@ func (h *MessageHandler) List(c *gin.Context) {
 		return
 	}
 
+	parsedUserID, err := valueobject.ParseUserID(c.MustGet("user_id").(string))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "invalid user"})
+		return
+	}
+
 	parsedChatID, err := valueobject.ParseChatID(req.ChatID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
@@ -71,6 +77,7 @@ func (h *MessageHandler) List(c *gin.Context) {
 	}
 
 	res, err := h.ListMessagesUC.Execute(c.Request.Context(), usecase.ListMessagesCommand{
+		UserID: parsedUserID,
 		ChatID: parsedChatID,
 	})
 	if err != nil {

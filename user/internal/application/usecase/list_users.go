@@ -9,6 +9,8 @@ import (
 
 type ListUsersCommand struct {
 	UserIDs []valueobject.UserID
+	Limit   int
+	Offset  int
 }
 
 type ListUsersResult struct {
@@ -31,7 +33,11 @@ func (uc *ListUsersUseCase) Execute(
 	ctx context.Context,
 	cmd ListUsersCommand,
 ) (*ListUsersResult, error) {
-	users, err := uc.users.FindManyByUserIDs(ctx, cmd.UserIDs)
+	if cmd.Limit == 0 {
+		cmd.Limit = 500
+	}
+
+	users, err := uc.users.List(ctx, cmd.UserIDs, cmd.Limit, cmd.Offset)
 	if err != nil {
 		return nil, err
 	}

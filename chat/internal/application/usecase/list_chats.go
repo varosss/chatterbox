@@ -29,7 +29,7 @@ func (uc *ListChatsUseCase) Execute(
 	ctx context.Context,
 	cmd ListChatsCommand,
 ) (*ListChatsResult, error) {
-	chats, err := uc.chats.FindManyByParticipantID(ctx, cmd.UserID)
+	chats, err := uc.chats.List(ctx, cmd.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -39,6 +39,7 @@ func (uc *ListChatsUseCase) Execute(
 		chatsRes[i] = &dto.Chat{
 			ID:             chat.ID().String(),
 			ParticipantIDs: chat.ParticipantIDsAsStrings(),
+			DisplayName:    chat.DisplayName(),
 		}
 	}
 
