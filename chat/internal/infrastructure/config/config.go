@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -9,11 +10,15 @@ type Database struct {
 	DSN string
 }
 
-type HttpServer struct {
-	Origins    string
-	HostURL    string
-	HostDomain string
-	Port       string
+type Http struct {
+	PublicURL string
+	Host      string
+	Port      string
+}
+
+type CORS struct {
+	AllowedOrigins   []string
+	AllowCredentials bool
 }
 
 type RabbitMQ struct {
@@ -30,27 +35,33 @@ type Security struct {
 }
 
 type Config struct {
-	Database   Database
-	HttpServer HttpServer
-	RabbitMQ   RabbitMQ
-	Security   Security
-	JWT        JWT
+	Database Database
+	Http     Http
+	RabbitMQ RabbitMQ
+	Security Security
+	JWT      JWT
+	CORS     CORS
 }
 
 func Load() (*Config, error) {
-	hostURL := os.Getenv("HTTP_SERVER_HOST_URL")
-	domain := strings.TrimPrefix(hostURL, "http://")
-	domain = strings.TrimPrefix(domain, "https://")
+	allowedOrigins := strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ",")
+	allowCreds, err := strconv.ParseBool(os.Getenv("CORS_ALLOW_CREDENTIALS"))
+	if err != nil {
+		return nil, err
+	}
 
 	cfg := &Config{
 		Database: Database{
 			DSN: os.Getenv("POSTGRES_URL"),
 		},
-		HttpServer: HttpServer{
-			Origins:    getEnv("HTTP_SERVER_ALLOW_ORIGIN", "*"),
-			HostDomain: domain,
-			HostURL:    hostURL,
-			Port:       getEnv("HTTP_SERVER_PORT", "80"),
+		Http: Http{
+			Host:      os.Getenv("HTTP_HOST"),
+			Port:      getEnv("HTTP_SERVER_PORT", "80"),
+			PublicURL: os.Getenv("PUBLIC_BASE_URL"),
+		},
+		CORS: CORS{
+			AllowedOrigins:   allowedOrigins,
+			AllowCredentials: allowCreds,
 		},
 		RabbitMQ: RabbitMQ{
 			URL:      os.Getenv("RABBITMQ_URL"),

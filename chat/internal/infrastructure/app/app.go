@@ -66,7 +66,7 @@ func New() (*App, error) {
 
 	ginEngine := gin.Default()
 	ginEngine.Use(gin.Recovery())
-	ginEngine.Use(httpmiddleware.CORSMiddleware(cfg.HttpServer.Origins))
+	ginEngine.Use(httpmiddleware.CORSMiddleware(cfg.CORS.AllowedOrigins))
 	ginEngine.Use(
 		httpmiddleware.AuthMiddleware(
 			auth.NewJWTVerifier(publicKey, cfg.JWT.Issuer),
@@ -84,7 +84,7 @@ func New() (*App, error) {
 	return &App{
 		cfg: cfg,
 		httpServer: &http.Server{
-			Addr:    fmt.Sprintf(":%s", cfg.HttpServer.Port),
+			Addr:    fmt.Sprintf(":%s", cfg.Http.Port),
 			Handler: ginEngine,
 		},
 		closers: closers,

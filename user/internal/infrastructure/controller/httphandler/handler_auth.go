@@ -90,23 +90,25 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
+	c.SetSameSite(h.cfg.Cookie.SameSite)
+
 	c.SetCookie(
 		"access_token",
 		res.AccessToken,
 		int(h.cfg.JWT.AccessTTL.Seconds()),
 		"/",
-		h.cfg.HttpServer.HostDomain,
-		false,
-		true,
+		h.cfg.Cookie.Domain,
+		h.cfg.Cookie.Secure,
+		h.cfg.Cookie.HttpOnly,
 	)
 	c.SetCookie(
 		"refresh_token",
 		res.RefreshToken,
 		int(h.cfg.JWT.RefreshTTL.Seconds()),
 		"/",
-		h.cfg.HttpServer.HostDomain,
-		false,
-		true,
+		h.cfg.Cookie.Domain,
+		h.cfg.Cookie.Secure,
+		h.cfg.Cookie.HttpOnly,
 	)
 
 	c.Status(http.StatusNoContent)
@@ -151,18 +153,18 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		res.AccessToken,
 		int(h.cfg.JWT.AccessTTL.Seconds()),
 		"/",
-		h.cfg.HttpServer.HostDomain,
-		false,
-		true,
+		h.cfg.Cookie.Domain,
+		h.cfg.Cookie.Secure,
+		h.cfg.Cookie.HttpOnly,
 	)
 	c.SetCookie(
 		"refresh_token",
 		res.RefreshToken,
 		int(h.cfg.JWT.RefreshTTL.Seconds()),
 		"/",
-		h.cfg.HttpServer.HostDomain,
-		false,
-		true,
+		h.cfg.Cookie.Domain,
+		h.cfg.Cookie.Secure,
+		h.cfg.Cookie.HttpOnly,
 	)
 
 	c.Status(http.StatusNoContent)

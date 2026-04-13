@@ -1,6 +1,8 @@
 package config
 
 import (
+	"chatterbox/user/internal/infrastructure/utils"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -17,11 +19,22 @@ type JWT struct {
 	RefreshTTL time.Duration
 }
 
-type HttpServer struct {
-	Origins    string
-	HostURL    string
-	HostDomain string
-	Port       string
+type Http struct {
+	PublicURL string
+	Host      string
+	Port      string
+}
+
+type CORS struct {
+	AllowedOrigins   []string
+	AllowCredentials bool
+}
+
+type Cookie struct {
+	Secure   bool
+	SameSite http.SameSite
+	HttpOnly bool
+	Domain   string
 }
 
 type Security struct {
@@ -31,10 +44,12 @@ type Security struct {
 }
 
 type Config struct {
-	HttpServer HttpServer
-	Database   Database
-	Security   Security
-	JWT        JWT
+	Http     Http
+	Database Database
+	Security Security
+	JWT      JWT
+	CORS     CORS
+	Cookie   Cookie
 }
 
 func Load() (*Config, error) {
@@ -53,9 +68,21 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
-	hostURL := os.Getenv("HTTP_SERVER_HOST_URL")
-	domain := strings.TrimPrefix(hostURL, "http://")
-	domain = strings.TrimPrefix(domain, "https://")
+	allowedOrigins := strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ",")
+	allowCreds, err := strconv.ParseBool(os.Getenv("CORS_ALLOW_CREDENTIALS"))
+	if err != nil {
+		return nil, err
+	}
+
+	cookieSecure, err := strconv.ParseBool(os.Getenv("COOKIE_SECURE"))
+	if err != nil {
+		return nil, err
+	}
+	cookieHttpOnly, err := strconv.ParseBool(os.Getenv("COOKIE_HTTPONLY"))
+	if err != nil {
+		return nil, err
+	}
+	cookieSameSite := utils.ParseSameSite(getEnv("COOKIE_SAMESITE", "lax"))
 
 	cfg := &Config{
 		Security: Security{
@@ -71,11 +98,20 @@ func Load() (*Config, error) {
 			AccessTTL:  accessTTL,
 			RefreshTTL: refreshTTL,
 		},
-		HttpServer: HttpServer{
-			Origins:    getEnv("HTTP_SERVER_ALLOW_ORIGIN", "*"),
-			HostDomain: domain,
-			HostURL:    hostURL,
-			Port:       getEnv("HTTP_SERVER_PORT", "80"),
+		Http: Http{
+			Host:      os.Getenv("HTTP_HOST"),
+			Port:      getEnv("HTTP_SERVER_PORT", "80"),
+			PublicURL: os.Getenv("PUBLIC_BASE_URL"),
+		},
+		CORS: CORS{
+			AllowedOrigins:   allowedOrigins,
+			AllowCredentials: allowCreds,
+		},
+		Cookie: Cookie{
+			Secure:   cookieSecure,
+			SameSite: cookieSameSite,
+			Domain:   getEnv("COOKIE_DOMAIN", ""),
+			HttpOnly: cookieHttpOnly,
 		},
 	}
 
