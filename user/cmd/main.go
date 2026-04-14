@@ -2,11 +2,17 @@ package main
 
 import (
 	"chatterbox/user/internal/infrastructure/app"
+	"chatterbox/user/internal/infrastructure/config"
 	"log"
 )
 
 func main() {
-	app, err := app.New()
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatalf("failed to load config: %s", err.Error())
+	}
+
+	app, err := app.New(cfg)
 	if err != nil {
 		log.Fatalf("failed to create app: %s", err.Error())
 	}

@@ -21,16 +21,11 @@ import (
 )
 
 type App struct {
-	cfg        *config.Config
 	httpServer *http.Server
 	closers    []func() error
 }
 
-func New() (*App, error) {
-	cfg, err := config.Load()
-	if err != nil {
-		return nil, err
-	}
+func New(cfg *config.Config) (*App, error) {
 	var closers []func() error
 
 	database, err := db.NewPostgres(cfg.Database.DSN)
@@ -82,7 +77,6 @@ func New() (*App, error) {
 	ginEngine.GET("/messages", messageHandler.List)
 
 	return &App{
-		cfg: cfg,
 		httpServer: &http.Server{
 			Addr:    fmt.Sprintf(":%s", cfg.Http.Port),
 			Handler: ginEngine,

@@ -23,18 +23,12 @@ import (
 )
 
 type App struct {
-	cfg           *config.Config
 	httpServer    *http.Server
 	eventConsumer *consumer.RabbitMQConsumer
 	closers       []func() error
 }
 
-func New() (*App, error) {
-	cfg, err := config.Load()
-	if err != nil {
-		return nil, err
-	}
-
+func New(cfg *config.Config) (*App, error) {
 	var closers []func() error
 
 	eventConsumer, err := consumer.NewRabbitMQConsumer(
@@ -83,7 +77,6 @@ func New() (*App, error) {
 	}
 
 	return &App{
-		cfg:           cfg,
 		httpServer:    httpServer,
 		eventConsumer: eventConsumer,
 		closers:       closers,
