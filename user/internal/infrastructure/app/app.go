@@ -3,6 +3,7 @@ package app
 import (
 	"chatterbox/pkg/clock"
 	"chatterbox/pkg/httpmiddleware"
+	"chatterbox/pkg/metrics"
 	pkgsecurity "chatterbox/pkg/security"
 	"chatterbox/user/internal/application/usecase"
 	"chatterbox/user/internal/infrastructure/adapter/auth"
@@ -19,6 +20,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type App struct {
@@ -107,6 +109,9 @@ func New(cfg *config.Config) (*App, error) {
 	ginEngine := gin.Default()
 	ginEngine.Use(gin.Recovery())
 	ginEngine.Use(httpmiddleware.CORSMiddleware(cfg.CORS.AllowedOrigins))
+	ginEngine.Use(metrics.Middleware())
+
+	ginEngine.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	ginEngine.POST("/register", authHandler.Register)
 	ginEngine.POST("/login", authHandler.Login)

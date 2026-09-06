@@ -9,6 +9,7 @@ import (
 	"chatterbox/chat/internal/infrastructure/db"
 	"chatterbox/pkg/auth"
 	"chatterbox/pkg/httpmiddleware"
+	"chatterbox/pkg/metrics"
 	"chatterbox/pkg/security"
 	"context"
 	"fmt"
@@ -18,6 +19,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type App struct {
@@ -62,7 +64,12 @@ func New(cfg *config.Config) (*App, error) {
 	ginEngine := gin.Default()
 	ginEngine.Use(gin.Recovery())
 	ginEngine.Use(httpmiddleware.CORSMiddleware(cfg.CORS.AllowedOrigins))
-	ginEngine.Use(
+	ginEngine.Use(metrics.Middleware())
+
+	ginEngine.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
+	authorized := ginEngine.Group("/")
+	authorized.Use(
 		httpmiddleware.AuthMiddleware(
 			auth.NewJWTVerifier(publicKey, cfg.JWT.Issuer),
 		),
@@ -71,10 +78,10 @@ func New(cfg *config.Config) (*App, error) {
 	chatHandler := httphandler.NewChatHandler(createChatUC, listChatsUC)
 	messageHandler := httphandler.NewMessageHandler(createMessageUC, listMessagesUC)
 
-	ginEngine.POST("/chats", chatHandler.Create)
-	ginEngine.GET("/chats", chatHandler.List)
-	ginEngine.POST("/messages", messageHandler.Create)
-	ginEngine.GET("/messages", messageHandler.List)
+	authorized.POST("/chats", chatHandler.Create)
+	authorized.GET("/chats", chatHandler.List)
+	authorized.POST("/messages", messageHandler.Create)
+	authorized.GET("/messages", messageHandler.List)
 
 	return &App{
 		httpServer: &http.Server{

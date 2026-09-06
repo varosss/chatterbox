@@ -35,6 +35,7 @@ services:
     depends_on:
       - chatterbox-chat
       - chatterbox-notification
+      - chatterbox-user
 
   chatterbox-rabbitmq:
     image: "rabbitmq:3-management"
@@ -96,9 +97,36 @@ services:
     networks:
       - chatterbox-network
 
+  chatterbox-prometheus:
+    image: prom/prometheus:latest
+    container_name: chatterbox-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+    - chatterbox-network
+    depends_on:
+      - chatterbox-chat
+      - chatterbox-notification
+      - chatterbox-user
+
+  chatterbox-grafana:
+    image: grafana/grafana:latest
+    container_name: chatterbox-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - chatterbox-grafana-data:/var/lib/grafana
+    networks:
+      - chatterbox-network
+    depends_on:
+      - chatterbox-prometheus
+
 volumes:
   chatterbox-postgres-data:
   chatterbox-rabbitmq-data:
+  chatterbox-grafana-data:
 
 networks:
   chatterbox-network:

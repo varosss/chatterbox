@@ -17,9 +17,11 @@ import (
 	"chatterbox/notification/internal/infrastructure/controller/httphandler"
 	"chatterbox/pkg/auth"
 	"chatterbox/pkg/httpmiddleware"
+	"chatterbox/pkg/metrics"
 	"chatterbox/pkg/security"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type App struct {
@@ -59,13 +61,18 @@ func New(cfg *config.Config) (*App, error) {
 	ginEngine := gin.Default()
 	ginEngine.Use(gin.Recovery())
 	ginEngine.Use(httpmiddleware.CORSMiddleware(cfg.CORS.AllowedOrigins))
-	ginEngine.Use(
+	ginEngine.Use(metrics.Middleware())
+
+	ginEngine.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
+	authorized := ginEngine.Group("/")
+	authorized.Use(
 		httpmiddleware.AuthMiddleware(
 			auth.NewJWTVerifier(publicKey, cfg.JWT.Issuer),
 		),
 	)
 
-	ginEngine.GET("/ws", wsHandler.Handle)
+	authorized.GET("/ws", wsHandler.Handle)
 
 	if err := eventConsumer.Register("message.created", messageCreatedHandler); err != nil {
 		return nil, err
