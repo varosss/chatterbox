@@ -1,0 +1,26 @@
+template: testify
+
+packages:
+  chatterbox/user/internal/domain/port:
+    config:
+      all: true
+      dir: "{{.InterfaceDir}}/mocks"
+      pkgname: mocks
+      filename: "mock_{{snakecase .InterfaceName}}.go"
+      structname: "Mock{{.InterfaceName}}"
+
+  chatterbox/chat/internal/domain/port:
+    config:
+      all: true
+      dir: "{{.InterfaceDir}}/mocks"
+      pkgname: mocks
+      filename: "mock_{{snakecase .InterfaceName}}.go"
+      structname: "Mock{{.InterfaceName}}"
+
+  chatterbox/notification/internal/domain/port:
+    config:
+      all: true
+      dir: "{{.InterfaceDir}}/mocks"
+      pkgname: mocks
+      filename: "mock_{{snakecase .InterfaceName}}.go"
+      structname: "Mock{{.InterfaceName}}"
