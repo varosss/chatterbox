@@ -105,3 +105,18 @@ clean-certs:
 
 show-public-key:
 	@cat $(PUBLIC_KEY)
+
+# ------------------------------------------------
+# Testing
+# ------------------------------------------------
+gen-mocks:
+	@echo "Generating mocks..."
+	@mockery
+
+test.%:
+	@echo "Testing service $*..."
+	@go test -v ./$*/... | grep -v "\[no test files\]"
+
+test.all:
+	@echo "Testing all services..."
+	@go test -v ./... | grep -v "\[no test files\]"
